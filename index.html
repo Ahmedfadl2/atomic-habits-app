@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#6366f1">
+<title>العادات الذرية — تنبيهات وتحديات</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512.png">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="العادات الذرية">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+<style>
+:root{--bg:#f7f7fb;--bg-card:#fff;--bg-soft:#f1f5f9;--bg-header:rgba(247,247,251,.92);--text:#1e293b;--text-soft:#475569;--text-muted:#64748b;--text-faint:#94a3b8;--border:#e2e8f0;--shadow:rgba(0,0,0,.04);--danger-soft:#fee2e2;--p1:#6366f1;--p2:#8b5cf6;--success:#10b981;--danger:#ef4444}
+[data-theme="dark"]{--bg:#0f172a;--bg-card:#1e293b;--bg-soft:#334155;--bg-header:rgba(15,23,42,.92);--text:#f1f5f9;--text-soft:#cbd5e1;--text-muted:#94a3b8;--text-faint:#64748b;--border:#334155;--shadow:rgba(0,0,0,.3);--danger-soft:#7f1d1d}
+[data-palette="purple"]{--p1:#6366f1;--p2:#8b5cf6}
+[data-palette="blue"]{--p1:#0ea5e9;--p2:#06b6d4}
+[data-palette="green"]{--p1:#10b981;--p2:#059669}
+[data-palette="rose"]{--p1:#f43f5e;--p2:#ec4899}
+[data-palette="amber"]{--p1:#f59e0b;--p2:#f97316}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:100px;direction:rtl;overflow-x:hidden;transition:background .3s,color .3s}
+body.auth-mode .app-header,body.auth-mode main,body.auth-mode .fab,body.auth-mode .bottom-nav{display:none!important}
+#authScreen{display:none;position:fixed;inset:0;background:linear-gradient(135deg,var(--p1),var(--p2));z-index:1000;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+body.auth-mode #authScreen{display:flex}
+.auth-container{background:var(--bg-card);border-radius:24px;padding:32px 24px;max-width:400px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:slideUp .4s}
+.auth-brand{font-size:32px;font-weight:800;text-align:center;background:linear-gradient(135deg,var(--p1),var(--p2));-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:6px}
+.auth-sub{text-align:center;color:var(--text-muted);font-size:13px;font-weight:600;margin-bottom:24px}
+.auth-btn{width:100%;padding:13px;border-radius:12px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;border:none;margin-bottom:10px;transition:transform .15s}
+.auth-btn:active{transform:scale(.97)}
+.auth-btn.primary{background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+.auth-btn.google{background:#fff;color:#1e293b;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;gap:10px}
+.auth-btn.ghost{background:var(--bg-soft);color:var(--text-soft);border:2px solid var(--border)}
+.auth-btn.link{background:none;color:var(--text-muted);font-size:12px;text-decoration:underline;margin-top:4px}
+.auth-input{width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:12px;font-family:inherit;font-size:14px;font-weight:600;margin-bottom:10px;outline:none;background:var(--bg-card);color:var(--text)}
+.auth-input:focus{border-color:var(--p1)}
+.auth-divider{text-align:center;margin:16px 0;color:var(--text-faint);font-size:12px;font-weight:700;position:relative}
+.auth-divider::before,.auth-divider::after{content:'';position:absolute;top:50%;width:40%;height:1px;background:var(--border)}
+.auth-divider::before{right:0}.auth-divider::after{left:0}
+.auth-divider span{background:var(--bg-card);padding:0 10px;position:relative}
+.auth-error{background:var(--danger-soft);color:var(--danger);padding:10px;border-radius:10px;font-size:12px;font-weight:700;margin-bottom:12px;text-align:center}
+.app-header{position:sticky;top:0;background:var(--bg-header);backdrop-filter:blur(12px);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;z-index:50;border-bottom:1px solid var(--shadow)}
+.logo{font-weight:800;font-size:18px;background:linear-gradient(135deg,var(--p1),var(--p2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.header-actions{display:flex;gap:8px;align-items:center}
+.points-badge{background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff;padding:8px 14px;border-radius:20px;font-weight:700;font-size:14px;box-shadow:0 4px 14px rgba(0,0,0,.15);transition:transform .3s}
+.points-badge.pulse{transform:scale(1.15)}
+.user-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;cursor:pointer;border:2px solid rgba(255,255,255,.3);object-fit:cover;overflow:hidden}
+main{padding:16px 16px 20px;max-width:600px;margin:0 auto}
+.section-title{font-size:15px;font-weight:700;color:var(--text-soft);margin:20px 4px 10px;display:flex;align-items:center;gap:8px;justify-content:space-between}
+.empty-state{background:var(--bg-card);border:2px dashed var(--border);border-radius:16px;padding:32px 20px;text-align:center;color:var(--text-faint);font-size:14px;font-weight:600}
+.hero-card{background:linear-gradient(135deg,var(--p1) 0%,var(--p2) 100%);border-radius:22px;padding:20px;color:#fff;box-shadow:0 10px 30px rgba(0,0,0,.15);position:relative;overflow:hidden}
+.hero-card::after{content:'';position:absolute;top:-40px;left:-40px;width:140px;height:140px;background:rgba(255,255,255,.12);border-radius:50%}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;position:relative;z-index:1}
+.hero-stat{text-align:center}
+.hero-stat-value{font-size:24px;font-weight:800;line-height:1.2}
+.hero-stat-label{font-size:11px;opacity:.85;font-weight:600;margin-top:2px}
+.card{background:var(--bg-card);border-radius:18px;padding:14px;margin-bottom:10px;box-shadow:0 2px 10px var(--shadow);border:1px solid var(--shadow);display:flex;gap:12px;align-items:center;transition:transform .15s,background .3s}
+.card:active{transform:scale(.985)}
+.card-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.card-body{flex:1;min-width:0}
+.card-title{font-weight:700;font-size:15px;color:var(--text);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-sub{font-size:12px;color:var(--text-muted);font-weight:600}
+.card-actions{display:flex;gap:6px;flex-shrink:0}
+.btn{border:none;padding:9px 14px;border-radius:12px;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;transition:transform .15s}
+.btn:active{transform:scale(.95)}
+.btn-primary{background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.btn-success{background:var(--success);color:#fff}
+.btn-ghost{background:var(--bg-soft);color:var(--text-soft)}
+.btn-danger{background:var(--danger-soft);color:var(--danger)}
+.btn-icon{width:36px;height:36px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:10px;font-size:16px}
+.btn-check{width:42px;height:42px;border-radius:50%;background:var(--bg-soft);color:var(--text-faint);border:2px solid var(--border);font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0}
+.btn-check.done{background:var(--success);color:#fff;border-color:var(--success)}
+.card.done{opacity:.7}.card.done .card-title{text-decoration:line-through}
+.progress{height:8px;background:var(--bg-soft);border-radius:6px;overflow:hidden;margin-top:8px}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--p1),var(--p2));border-radius:6px;transition:width .4s}
+.fab{position:fixed;bottom:96px;left:20px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff;border:none;font-size:28px;box-shadow:0 8px 24px rgba(0,0,0,.3);cursor:pointer;display:none;align-items:center;justify-content:center;z-index:40;font-family:inherit;line-height:1;padding-bottom:4px}
+.fab.show{display:flex}.fab:active{transform:scale(.9)}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg-card);display:flex;justify-content:space-around;padding:8px 4px calc(8px + env(safe-area-inset-bottom));border-top:1px solid var(--shadow);z-index:50;box-shadow:0 -4px 20px var(--shadow)}
+.nav-btn{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:inherit;font-size:10px;color:var(--text-faint);cursor:pointer;padding:6px 8px;border-radius:12px;transition:all .2s;font-weight:700;flex:1}
+.nav-btn.active{color:var(--p1);background:rgba(99,102,241,.1)}
+.nav-btn .icon{font-size:20px}
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(4px);display:none;align-items:flex-end;z-index:100;animation:fadeIn .2s}
+.modal.open{display:flex}
+.modal-content{background:var(--bg-card);width:100%;max-width:600px;margin:0 auto;border-radius:24px 24px 0 0;padding:20px 20px calc(24px + env(safe-area-inset-bottom));max-height:92vh;overflow-y:auto;animation:slideUp .3s ease}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.modal-header h2{font-size:18px;font-weight:800;color:var(--text)}
+.modal-close{background:var(--bg-soft);border:none;width:34px;height:34px;border-radius:50%;font-size:18px;cursor:pointer;color:var(--text-muted);font-family:inherit}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;font-weight:700;color:var(--text-soft);margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;padding:11px 14px;border:2px solid var(--border);border-radius:12px;font-family:inherit;font-size:14px;font-weight:600;color:var(--text);background:var(--bg-card);outline:none}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--p1)}
+.field textarea{min-height:90px;resize:vertical;font-family:monospace;font-size:12px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-height:280px;overflow-y:auto;padding:2px}
+.cat-chip{background:var(--bg-soft);border:2px solid var(--border);border-radius:12px;padding:8px 2px;cursor:pointer;text-align:center;font-family:inherit;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:2px}
+.cat-chip .em{font-size:20px}
+.cat-chip .nm{font-size:9px;font-weight:700;color:var(--text-soft);line-height:1.15}
+.cat-chip.active{transform:scale(1.03)}
+.days-grid{display:flex;justify-content:space-between;gap:5px}
+.day-btn{flex:1;padding:9px 0;border:2px solid var(--border);background:var(--bg-card);border-radius:10px;cursor:pointer;font-family:inherit;font-weight:700;font-size:11px;color:var(--text-muted);transition:all .15s}
+.day-btn.active{background:var(--p1);color:#fff;border-color:var(--p1)}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.stat-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.stat-card{background:var(--bg-card);border-radius:16px;padding:16px;box-shadow:0 2px 10px var(--shadow);text-align:center}
+.stat-card.small{padding:12px 8px}
+.stat-card .val{font-size:26px;font-weight:800;background:linear-gradient(135deg,var(--p1),var(--p2));-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1.1}
+.stat-card.small .val{font-size:20px}
+.stat-card .lbl{font-size:12px;color:var(--text-muted);font-weight:700;margin-top:4px}
+.stat-card.small .lbl{font-size:10px}
+.chart-container{background:var(--bg-card);border-radius:18px;padding:16px;margin-bottom:16px;box-shadow:0 2px 10px var(--shadow);position:relative;height:260px}
+.badges-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.badge-card{background:var(--bg-card);border-radius:14px;padding:12px 6px;text-align:center;box-shadow:0 2px 10px var(--shadow);transition:all .2s;border:2px solid transparent}
+.badge-card.locked{opacity:.35;filter:grayscale(1)}
+.badge-card.unlocked{box-shadow:0 4px 16px rgba(99,102,241,.25);border-color:var(--p1)}
+.badge-icon{font-size:28px;margin-bottom:4px;line-height:1}
+.badge-name{font-size:11px;font-weight:800;color:var(--text);margin-bottom:2px}
+.badge-desc{font-size:9px;color:var(--text-muted);font-weight:600;line-height:1.2}
+.prayer-card{background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(139,92,246,.12));border-radius:18px;padding:16px;margin-bottom:10px;border:1px solid rgba(99,102,241,.2)}
+.prayer-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--shadow)}
+.prayer-row:last-child{border-bottom:none}
+.prayer-name{font-weight:700;font-size:13px;color:var(--text-soft)}
+.prayer-time{font-weight:800;font-size:14px;color:var(--p1)}
+.setting-row{background:var(--bg-card);border-radius:14px;padding:14px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 10px var(--shadow);gap:12px}
+.setting-info{flex:1;min-width:0}
+.setting-title{font-weight:700;font-size:14px;color:var(--text)}
+.setting-desc{font-size:11px;color:var(--text-muted);font-weight:600;margin-top:2px}
+.toggle{width:48px;height:28px;border-radius:14px;background:var(--border);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle::after{content:'';position:absolute;top:2px;right:2px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 2px 4px rgba(0,0,0,.2)}
+.toggle.on{background:var(--p1)}
+.toggle.on::after{transform:translateX(-20px)}
+.sync-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:10px;font-size:11px;font-weight:700}
+.sync-badge.online{background:rgba(16,185,129,.15);color:var(--success)}
+.sync-badge.offline{background:rgba(100,116,139,.15);color:var(--text-muted)}
+.profile-card{background:linear-gradient(135deg,var(--p1),var(--p2));border-radius:20px;padding:20px;color:#fff;margin-bottom:16px;display:flex;gap:14px;align-items:center}
+.profile-avatar{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;flex-shrink:0;overflow:hidden;object-fit:cover}
+.profile-info{flex:1;min-width:0}
+.profile-name{font-size:18px;font-weight:800;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.profile-email{font-size:12px;opacity:.85;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tab-bar{display:flex;background:var(--bg-soft);border-radius:12px;padding:4px;margin-bottom:14px;gap:4px}
+.tab-bar button{flex:1;padding:9px;border:none;background:none;font-family:inherit;font-weight:700;font-size:13px;color:var(--text-muted);cursor:pointer;border-radius:9px;transition:all .2s}
+.tab-bar button.active{background:var(--bg-card);color:var(--p1);box-shadow:0 2px 6px var(--shadow)}
+.leader-row{background:var(--bg-card);border-radius:14px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 10px var(--shadow)}
+.leader-rank{width:32px;height:32px;border-radius:50%;background:var(--bg-soft);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:var(--text-muted);flex-shrink:0}
+.leader-rank.gold{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#fff}
+.leader-rank.silver{background:linear-gradient(135deg,#cbd5e1,#94a3b8);color:#fff}
+.leader-rank.bronze{background:linear-gradient(135deg,#f59e0b,#92400e);color:#fff}
+.leader-rank.me{background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff}
+.leader-avatar{width:40px;height:40px;border-radius:50%;background:var(--bg-soft);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:var(--text-muted);flex-shrink:0;overflow:hidden;object-fit:cover}
+.leader-body{flex:1;min-width:0}
+.leader-name{font-weight:800;font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.leader-sub{font-size:11px;color:var(--text-muted);font-weight:600}
+.leader-points{font-weight:800;font-size:14px;color:var(--p1);flex-shrink:0}
+.theme-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
+.theme-swatch{aspect-ratio:1;border-radius:16px;cursor:pointer;border:3px solid transparent;transition:all .2s;position:relative}
+.theme-swatch.active{border-color:var(--text);transform:scale(1.05)}
+.theme-swatch.active::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;font-weight:900;text-shadow:0 2px 4px rgba(0,0,0,.4)}
+.group-card{background:var(--bg-card);border-radius:16px;padding:14px;margin-bottom:10px;box-shadow:0 2px 10px var(--shadow);border:2px solid transparent}
+.group-card.my{border-color:var(--p1)}
+.group-header{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.group-emoji{font-size:32px}
+.group-info{flex:1;min-width:0}
+.group-name{font-weight:800;font-size:15px;color:var(--text)}
+.group-meta{font-size:11px;color:var(--text-muted);font-weight:600}
+.group-members{display:flex;margin-top:8px;flex-wrap:wrap}
+.group-member{width:32px;height:32px;border-radius:50%;background:var(--bg-soft);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--text-soft);border:2px solid var(--bg-card);margin-left:-8px}
+.group-member:first-child{margin-left:0}
+.share-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.share-btn{background:var(--bg-soft);border:none;border-radius:14px;padding:14px 8px;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:6px;font-weight:700;font-size:11px;color:var(--text-soft);transition:transform .15s}
+.share-btn:active{transform:scale(.95)}
+.share-btn .ico{font-size:24px}
+.share-btn.whatsapp{background:rgba(37,211,102,.15);color:#25d366}
+.share-btn.twitter{background:rgba(29,161,242,.15);color:#1da1f2}
+.share-btn.copy{background:rgba(99,102,241,.15);color:var(--p1)}
+.insight-card{background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(139,92,246,.08));border-radius:16px;padding:16px;margin-bottom:10px;border:1px solid rgba(99,102,241,.2)}
+.insight-icon{font-size:24px;margin-bottom:8px}
+.insight-title{font-weight:800;font-size:14px;color:var(--text);margin-bottom:4px}
+.insight-desc{font-size:12px;color:var(--text-soft);font-weight:600;line-height:1.5;margin-bottom:10px}
+.toast{position:fixed;bottom:100px;left:50%;transform:translate(-50%,20px);background:#1e293b;color:#fff;padding:12px 20px;border-radius:14px;font-weight:700;font-size:13px;z-index:200;opacity:0;transition:all .3s;max-width:90vw;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.2);pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.success{background:var(--success)}.toast.info{background:var(--p1)}
+.install-banner{background:linear-gradient(135deg,var(--success),#059669);color:#fff;border-radius:16px;padding:14px 18px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 16px rgba(16,185,129,.35);gap:10px}
+.install-banner button{background:#fff;color:var(--success);border:none;padding:8px 14px;border-radius:10px;font-family:inherit;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+</style>
+</head>
+<body>
+
+<div id="authScreen">
+  <div class="auth-container">
+    <div class="auth-brand">العادات الذرية</div>
+    <div class="auth-sub">بناء عادات صغيرة تُحدث فرقاً كبيراً</div>
+    <div id="authError" class="auth-error" style="display:none"></div>
+    <button class="auth-btn google" id="googleLogin">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      متابعة بحساب Google
+    </button>
+    <div class="auth-divider"><span>أو</span></div>
+    <input type="email" id="authEmail" class="auth-input" placeholder="البريد الإلكتروني">
+    <input type="password" id="authPassword" class="auth-input" placeholder="كلمة المرور (6+)">
+    <button class="auth-btn primary" id="emailLogin">تسجيل الدخول</button>
+    <button class="auth-btn ghost" id="emailSignup">إنشاء حساب</button>
+    <button class="auth-btn link" id="skipAuth">متابعة بدون حساب (محلي)</button>
+  </div>
+</div>
+
+<div id="mainApp">
+<header class="app-header">
+  <div class="logo">العادات الذرية</div>
+  <div class="header-actions">
+    <button class="btn btn-icon btn-ghost" id="themeToggle">🌙</button>
+    <div class="points-badge" id="pointsBadge">⭐ 0</div>
+    <div class="user-avatar" id="userAvatar" onclick="openProfileMenu()">👤</div>
+  </div>
+</header>
+<main id="content"></main>
+<button class="fab" id="fab">+</button>
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-tab="home"><span class="icon">🏠</span><span>الرئيسية</span></button>
+  <button class="nav-btn" data-tab="reminders"><span class="icon">⏰</span><span>التنبيهات</span></button>
+  <button class="nav-btn" data-tab="challenges"><span class="icon">🎯</span><span>التحديات</span></button>
+  <button class="nav-btn" data-tab="groups"><span class="icon">👥</span><span>المجموعات</span></button>
+  <button class="nav-btn" data-tab="stats"><span class="icon">📊</span><span>الإحصائيات</span></button>
+  <button class="nav-btn" data-tab="settings"><span class="icon">⚙️</span><span>الإعدادات</span></button>
+</nav>
+</div>
+
+<div class="modal" id="reminderModal"><div class="modal-content">
+  <div class="modal-header"><h2>⏰ تنبيه جديد</h2><button class="modal-close" data-close="reminderModal">✕</button></div>
+  <div class="field"><label>التصنيف</label><div class="cat-grid" id="reminderCats"></div></div>
+  <div class="field"><label>العنوان (اختياري)</label><input id="reminderTitle" placeholder="صلاة الفجر"></div>
+  <div class="field"><label>الوقت</label><input type="time" id="reminderTime" value="07:00"></div>
+  <div class="field" id="prayerFetchField" style="display:none"><button class="btn btn-ghost" style="width:100%" id="fetchPrayerBtn">🕌 جلب من المواقيت</button></div>
+  <div class="field"><label>التكرار</label><select id="reminderRepeat"><option value="daily">كل يوم</option><option value="weekly">أيام محددة</option><option value="once">مرة واحدة</option></select></div>
+  <div class="field" id="reminderDaysField" style="display:none"><label>الأيام</label><div class="days-grid" id="reminderDays"></div></div>
+  <button class="btn btn-primary" style="width:100%;padding:14px;font-size:15px;margin-top:8px" id="saveReminder">حفظ</button>
+</div></div>
+
+<div class="modal" id="challengeModal"><div class="modal-content">
+  <div class="modal-header"><h2>🎯 تحدي جديد</h2><button class="modal-close" data-close="challengeModal">✕</button></div>
+  <div class="field"><label>التصنيف</label><div class="cat-grid" id="challengeCats"></div></div>
+  <div class="field"><label>العنوان</label><input id="challengeTitle" placeholder="هتمرن كل يوم"></div>
+  <div class="field"><label>الوقت اليومي</label><input type="time" id="challengeTime" value="18:00"></div>
+  <div class="field-row">
+    <div class="field"><label>المدة (يوم)</label><input type="number" id="challengeDuration" value="30" min="3" max="365"></div>
+    <div class="field"><label>أيام/أسبوع</label><input type="number" id="challengePerWeek" value="7" min="1" max="7"></div>
+  </div>
+  <button class="btn btn-primary" style="width:100%;padding:14px;margin-top:8px" id="saveChallenge">ابدأ 🚀</button>
+</div></div>
+
+<div class="modal" id="firebaseModal"><div class="modal-content">
+  <div class="modal-header"><h2>☁️ Firebase</h2><button class="modal-close" data-close="firebaseModal">✕</button></div>
+  <div style="background:var(--bg-soft);padding:12px;border-radius:12px;margin-bottom:14px;font-size:12px;line-height:1.7;color:var(--text-soft);font-weight:600">
+    ١. <a href="https://console.firebase.google.com/" target="_blank" style="color:var(--p1);font-weight:800">Firebase Console</a> ← مشروع<br>
+    ٢. Add Web App ← انسخ config<br>
+    ٣. Auth ← Google + Email/Password<br>
+    ٤. Firestore ← Create database
+  </div>
+  <div class="field"><label>Firebase Config</label><textarea id="fbConfigInput" placeholder='{"apiKey":"..."}'></textarea></div>
+  <button class="btn btn-primary" style="width:100%;padding:14px;margin-top:8px" id="saveFbConfig">حفظ</button>
+</div></div>
+
+<div class="modal" id="leaderboardModal"><div class="modal-content">
+  <div class="modal-header"><h2>🏆 لوحة الصدارة</h2><button class="modal-close" data-close="leaderboardModal">✕</button></div>
+  <div class="tab-bar"><button data-lb-tab="global" class="active">🌍 عالمي</button><button data-lb-tab="friends">👥 أصدقاء</button></div>
+  <div id="leaderboardContent"></div>
+</div></div>
+
+<div class="modal" id="friendsModal"><div class="modal-content">
+  <div class="modal-header"><h2>👥 الأصدقاء</h2><button class="modal-close" data-close="friendsModal">✕</button></div>
+  <div class="field"><label>إضافة صديق بالبريد</label><div style="display:flex;gap:8px"><input id="friendEmail" placeholder="friend@example.com" style="flex:1"><button class="btn btn-primary" id="addFriendBtn">➕</button></div></div>
+  <div id="friendsContent"></div>
+</div></div>
+
+<div class="modal" id="profileModal"><div class="modal-content">
+  <div class="modal-header"><h2>👤 الحساب</h2><button class="modal-close" data-close="profileModal">✕</button></div>
+  <div id="profileContent"></div>
+</div></div>
+
+<div class="modal" id="groupModal"><div class="modal-content">
+  <div class="modal-header"><h2>👥 مجموعة جديدة</h2><button class="modal-close" data-close="groupModal">✕</button></div>
+  <div class="field"><label>اسم المجموعة</label><input id="groupName" placeholder="عيلة النجاح"></div>
+  <div class="field"><label>الإيموجي</label><select id="groupEmoji"><option>👥</option><option>🏆</option><option>💪</option><option>📚</option><option>🕌</option><option>🔥</option><option>🎯</option><option>🚀</option></select></div>
+  <button class="btn btn-primary" style="width:100%;padding:14px;margin-top:8px" id="saveGroup">إنشاء 🚀</button>
+</div></div>
+
+<div class="modal" id="shareModal"><div class="modal-content">
+  <div class="modal-header"><h2>📤 شارك إنجازك</h2><button class="modal-close" data-close="shareModal">✕</button></div>
+  <div id="sharePreview"></div>
+  <div class="share-row">
+    <button class="share-btn whatsapp" onclick="shareTo('whatsapp')"><span class="ico">💬</span>WhatsApp</button>
+    <button class="share-btn twitter" onclick="shareTo('twitter')"><span class="ico">🐦</span>Twitter</button>
+    <button class="share-btn copy" onclick="shareTo('copy')"><span class="ico">📋</span>نسخ</button>
+    <button class="share-btn" style="background:rgba(99,102,241,.15);color:var(--p1)" onclick="shareTo('native')"><span class="ico">📱</span>مشاركة</button>
+  </div>
+</div></div>
+
+<div class="modal" id="smartModal"><div class="modal-content">
+  <div class="modal-header"><h2>🧠 إشعارات ذكية</h2><button class="modal-close" data-close="smartModal">✕</button></div>
+  <div id="smartContent"></div>
+</div></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+const pad = n => String(n).padStart(2,'0');
+const dateStr = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const todayStr = () => dateStr(new Date());
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+const DAY_NAMES = ['أحد','اثن','ثلا','أرب','خمي','جمع','سبت'];
+
+const DEFAULT_CATEGORIES = [
+  {id:'fajr',name:'الفجر',icon:'🕌',color:'#6366f1',points:20,prayer:'Fajr'},
+  {id:'dhuhr',name:'الظهر',icon:'🌞',color:'#f59e0b',points:15,prayer:'Dhuhr'},
+  {id:'asr',name:'العصر',icon:'🌇',color:'#f97316',points:15,prayer:'Asr'},
+  {id:'maghrib',name:'المغرب',icon:'🌆',color:'#ec4899',points:15,prayer:'Maghrib'},
+  {id:'isha',name:'العشاء',icon:'🌙',color:'#8b5cf6',points:15,prayer:'Isha'},
+  {id:'exercise',name:'تمرين',icon:'💪',color:'#ef4444',points:15},
+  {id:'study',name:'مذاكرة',icon:'📚',color:'#06b6d4',points:15},
+  {id:'quran',name:'قرآن',icon:'📖',color:'#10b981',points:20},
+  {id:'podcast',name:'بودكاست',icon:'🎧',color:'#a855f7',points:10},
+  {id:'appointment',name:'موعد',icon:'📅',color:'#0891b2',points:10},
+  {id:'medicine',name:'دواء',icon:'💊',color:'#f43f5e',points:15},
+  {id:'reading',name:'قراءة',icon:'📕',color:'#ea580c',points:10},
+];
+const BADGES = [
+  {id:'first_step',icon:'🌱',name:'البداية',desc:'أول إنجاز',check:s=>s.history.length>=1},
+  {id:'streak_3',icon:'🔥',name:'3 أيام',desc:'3 متواصلة',check:s=>s.stats.longestStreak>=3},
+  {id:'streak_7',icon:'💪',name:'أسبوع',desc:'7 متواصلة',check:s=>s.stats.longestStreak>=7},
+  {id:'streak_30',icon:'⭐',name:'شهر',desc:'30 متواصل',check:s=>s.stats.longestStreak>=30},
+  {id:'points_100',icon:'🎯',name:'100 نقطة',desc:'جمعت 100',check:s=>s.stats.totalPoints>=100},
+  {id:'points_500',icon:'🏅',name:'500 نقطة',desc:'جمعت 500',check:s=>s.stats.totalPoints>=500},
+  {id:'points_1000',icon:'👑',name:'1000 نقطة',desc:'جمعت 1000',check:s=>s.stats.totalPoints>=1000},
+  {id:'challenge_1',icon:'🏆',name:'بطل',desc:'أول تحدي',check:s=>s.challenges.some(c=>getChallengeStatus(c).status==='completed')},
+  {id:'challenge_5',icon:'🎖️',name:'محترف',desc:'5 تحديات',check:s=>s.challenges.filter(c=>getChallengeStatus(c).status==='completed').length>=5},
+  {id:'fajr_7',icon:'🌅',name:'فجر',desc:'7 أيام فجر',check:s=>s.history.filter(h=>h.reason.includes('الفجر')).length>=7},
+  {id:'quran_10',icon:'📖',name:'قارئ',desc:'10 قرآن',check:s=>s.history.filter(h=>h.reason.includes('قرآن')).length>=10},
+  {id:'athlete',icon:'🏋️',name:'رياضي',desc:'10 تمارين',check:s=>s.history.filter(h=>h.reason.includes('تمرين')).length>=10},
+];
+const PRAYER_METHODS = [{id:5,name:'الهيئة المصرية'},{id:4,name:'أم القرى'},{id:3,name:'رابطة العالم'},{id:2,name:'ISNA'},{id:1,name:'كراتشي'}];
+const THEMES = [{id:'purple',c1:'#6366f1',c2:'#8b5cf6'},{id:'blue',c1:'#0ea5e9',c2:'#06b6d4'},{id:'green',c1:'#10b981',c2:'#059669'},{id:'rose',c1:'#f43f5e',c2:'#ec4899'},{id:'amber',c1:'#f59e0b',c2:'#f97316'}];
+const STORAGE_KEY = 'atomic_habits_v1';
+const FB_STORAGE_KEY = 'atomic_habits_firebase';
+const CAT_TO_PRAYER = {fajr:'Fajr',dhuhr:'Dhuhr',asr:'Asr',maghrib:'Maghrib',isha:'Isha'};
+
+function defaultState(){
+  return {
+    categories: JSON.parse(JSON.stringify(DEFAULT_CATEGORIES)),
+    reminders: [], challenges: [], groups: [], pendingShare: null,
+    stats: {totalPoints:0,currentStreak:0,longestStreak:0,lastActiveDate:null,lastFiredNoAchievement:null},
+    history: [], badges: {},
+    settings: {theme:'light',palette:'purple',method:5,lat:30.0444,lng:31.2357,displayName:'',noAchievementReminder:{enabled:false,time:'21:00'}},
+    prayerCache: null, lastSyncAt: null,
+    smart: {openTimes:[], suggestedHours:[]}
+  };
+}
+function load(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('munabbihi_v5');
+    if (raw) {
+      const s = JSON.parse(raw);
+      const def = defaultState();
+      if (!s.categories) s.categories = def.categories;
+      else def.categories.forEach(dc => { if (!s.categories.find(c => c.id === dc.id)) s.categories.push(dc); });
+      s.badges = s.badges || {};
+      s.settings = Object.assign(def.settings, s.settings || {});
+      s.settings.noAchievementReminder = Object.assign({enabled:false,time:'21:00'}, s.settings.noAchievementReminder || {});
+      s.smart = Object.assign(def.smart, s.smart || {});
+      s.groups = s.groups || [];
+      return s;
+    }
+  } catch(e){}
+  return defaultState();
+}
+let state = load();
+let currentTab = 'home', selectedReminderCat = 'fajr', selectedReminderDays = [], selectedChallengeCat = 'fajr';
+let deferredPrompt = null, firebaseReady = false, categoryChart = null, lbTab = 'global';
+
+function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme', state.settings.theme);
+  document.documentElement.setAttribute('data-palette', state.settings.palette || 'purple');
+  document.querySelector('meta[name="theme-color"]').setAttribute('content', state.settings.theme === 'dark' ? '#0f172a' : '#6366f1');
+  const btn = $('#themeToggle');
+  if (btn) btn.textContent = state.settings.theme === 'dark' ? '☀️' : '🌙';
+}
+function toggleTheme(){ state.settings.theme = state.settings.theme === 'dark' ? 'light' : 'dark'; save(); applyTheme(); render(); }
+function setPalette(p){ state.settings.palette = p; save(); applyTheme(); render(); }
+
+function toast(msg, type='info'){
+  const t = document.createElement('div');
+  t.className = `toast ${type}`; t.textContent = msg;
+  document.body.appendChild(t);
+  requestAnimationFrame(()=>t.classList.add('show'));
+  setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),300); }, 2800);
+}
+function checkBadges(){
+  const unlocked = [];
+  BADGES.forEach(b => { if (!state.badges[b.id] && b.check(state)) { state.badges[b.id] = {unlockedAt: Date.now()}; unlocked.push(b); } });
+  if (unlocked.length) { save(); unlocked.forEach((b,i) => setTimeout(() => toast(`🏅 ${b.icon} ${b.name}`, 'success'), 600 + i*900)); }
+}
+function addPoints(amount, reason, categoryId = null){
+  state.stats.totalPoints += amount;
+  const today = todayStr(); const yesterday = dateStr(new Date(Date.now() - 86400000));
+  if (state.stats.lastActiveDate !== today) {
+    if (state.stats.lastActiveDate === yesterday) state.stats.currentStreak++;
+    else state.stats.currentStreak = 1;
+    state.stats.lastActiveDate = today;
+    if (state.stats.currentStreak > state.stats.longestStreak) state.stats.longestStreak = state.stats.currentStreak;
+  }
+  state.history.push({date:today, points:amount, reason, categoryId});
+  if (state.history.length > 500) state.history = state.history.slice(-500);
+  const badge = $('#pointsBadge');
+  if (badge) { badge.classList.add('pulse'); setTimeout(()=>badge.classList.remove('pulse'), 300); }
+  toast(`+${amount} ${reason}`, 'success');
+  checkBadges();
+  if (firebaseReady) syncToCloud(true);
+}
+function removePoints(a){ state.stats.totalPoints = Math.max(0, state.stats.totalPoints - a); }
+function getCat(id){ return state.categories.find(c=>c.id===id) || state.categories[0]; }
+
+function getTodayReminders(){
+  const dow = new Date().getDay();
+  return state.reminders.filter(r=>{
+    if (!r.enabled) return false;
+    if (r.repeat === 'once' || r.repeat === 'daily') return true;
+    if (r.repeat === 'weekly') return (r.days||[]).includes(dow);
+    return true;
+  }).sort((a,b)=>a.time.localeCompare(b.time));
+}
+function toggleReminderDone(id){
+  const r = state.reminders.find(x=>x.id===id); if (!r) return;
+  const today = todayStr(); r.done = r.done || {};
+  const cat = getCat(r.categoryId);
+  if (r.done[today]) { delete r.done[today]; removePoints(cat.points); }
+  else { r.done[today] = true; addPoints(cat.points, `تم ${cat.name}`, cat.id); }
+  save(); render();
+}
+function deleteReminder(id){ if (!confirm('حذف؟')) return; state.reminders = state.reminders.filter(r=>r.id!==id); save(); render(); scheduleTriggerNotifications(); }
+function toggleReminderEnabled(id){ const r = state.reminders.find(x=>x.id===id); if (!r) return; r.enabled = !r.enabled; save(); render(); scheduleTriggerNotifications(); }
+
+function getChallengeStatus(c){
+  const completed = Object.keys(c.logs||{}).length;
+  const expected = Math.max(1, Math.round(c.durationDays / 7 * c.daysPerWeek));
+  const endDate = new Date(new Date(c.startDate).getTime() + c.durationDays * 86400000);
+  if (completed >= expected) return {status:'completed',completed,expected};
+  if (todayStr() > dateStr(endDate)) return {status:'expired',completed,expected};
+  return {status:'active',completed,expected};
+}
+function completeChallengeDay(id){
+  const c = state.challenges.find(x=>x.id===id); if (!c) return;
+  const today = todayStr(); c.logs = c.logs || {};
+  if (c.logs[today]) { toast('مسجل','info'); return; }
+  c.logs[today] = true;
+  const cat = getCat(c.categoryId);
+  addPoints(cat.points, `إنجاز: ${c.title}`, cat.id);
+  const st = getChallengeStatus(c);
+  if (st.completed >= st.expected && st.status === 'completed') setTimeout(()=>addPoints(50, '🎉 أكملت التحدي!', cat.id), 400);
+  save(); render();
+}
+function deleteChallenge(id){ if (!confirm('حذف؟')) return; state.challenges = state.challenges.filter(c=>c.id!==id); save(); render(); }
+
+async function requestNotifPermission(){
+  if ('Notification' in window && Notification.permission === 'default') { try { await Notification.requestPermission(); } catch(e){} }
+}
+function playBeep(){
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator(), gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'sine'; osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.7);
+    osc.start(); osc.stop(ctx.currentTime + 0.7);
+  } catch(e){}
+}
+async function showNotification(title, body, tag){
+  if ('Notification' in window && Notification.permission === 'granted') {
+    try {
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        const reg = await navigator.serviceWorker.ready;
+        return reg.showNotification(title, {body, tag, requireInteraction:true, icon:'./icons/icon-192.png', badge:'./icons/icon-192.png'});
+      }
+      return new Notification(title, {body, tag, requireInteraction:true});
+    } catch(e){}
+  }
+}
+function fireNotification(r){
+  const cat = getCat(r.categoryId);
+  playBeep();
+  if (navigator.vibrate) navigator.vibrate([200,100,200]);
+  showNotification(`${cat.icon} ${r.title || cat.name}`, `حان وقت ${cat.name}`, r.id);
+  toast(`${cat.icon} ${r.title || cat.name}`, 'info');
+}
+function checkReminders(){
+  const now = new Date();
+  const nowTime = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  const today = todayStr(); const dow = now.getDay();
+  let changed = false;
+  state.reminders.forEach(r=>{
+    if (!r.enabled || r.time !== nowTime) return;
+    if (r.repeat === 'weekly' && !(r.days||[]).includes(dow)) return;
+    if (r.lastFired === today + '_' + nowTime) return;
+    if (r.repeat === 'once' && r.lastFired) return;
+    fireNotification(r);
+    r.lastFired = today + '_' + nowTime;
+    if (r.repeat === 'once') r.enabled = false;
+    changed = true;
+  });
+  const nar = state.settings.noAchievementReminder;
+  if (nar && nar.enabled && nar.time === nowTime && state.stats.lastFiredNoAchievement !== today) {
+    if (!state.history.some(h => h.date === today)) {
+      playBeep();
+      showNotification('⏰ تذكير', 'لم تسجل أي إنجاز اليوم! ابدأ 💪', 'no-ach-' + today);
+      state.stats.lastFiredNoAchievement = today; save();
+    }
+  }
+  if (changed) save();
+}
+async function scheduleTriggerNotifications(){
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  if (!('serviceWorker' in navigator)) return;
+  if (!('showTrigger' in Notification.prototype)) return;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const now = Date.now(); const upcoming = [];
+    state.reminders.forEach(r => {
+      if (!r.enabled) return;
+      const [h, m] = r.time.split(':').map(Number);
+      const base = new Date(); base.setHours(h, m, 0, 0);
+      if (r.repeat === 'once') { if (base.getTime() <= now) base.setDate(base.getDate() + 1); upcoming.push({r, when: base.getTime()}); }
+      else if (r.repeat === 'daily') { for (let i = 0; i < 3; i++) { const d = new Date(base); d.setDate(d.getDate() + i); if (d.getTime() > now) upcoming.push({r, when: d.getTime()}); } }
+      else if (r.repeat === 'weekly') {
+        (r.days || []).forEach(dow => {
+          const d = new Date(); d.setHours(h, m, 0, 0);
+          const diff = (dow - d.getDay() + 7) % 7;
+          d.setDate(d.getDate() + diff);
+          if (d.getTime() <= now) d.setDate(d.getDate() + 7);
+          upcoming.push({r, when: d.getTime()});
+        });
+      }
+    });
+    upcoming.sort((a,b)=>a.when-b.when);
+    for (const item of upcoming.slice(0, 20)) {
+      const cat = getCat(item.r.categoryId);
+      try { await reg.showNotification(`${cat.icon} ${item.r.title || cat.name}`, {body: `حان وقت ${cat.name}`, tag: `trigger-${item.r.id}-${item.when}`, showTrigger: new TimestampTrigger(item.when)}); } catch(e){}
+    }
+  } catch(e){}
+}
+function trackAppOpen(){
+  const hour = new Date().getHours();
+  state.smart.openTimes = state.smart.openTimes || [];
+  state.smart.openTimes.push({hour, at: Date.now()});
+  if (state.smart.openTimes.length > 200) state.smart.openTimes = state.smart.openTimes.slice(-200);
+  const hours = {};
+  state.smart.openTimes.forEach(o => { hours[o.hour] = (hours[o.hour]||0) + 1; });
+  state.smart.suggestedHours = Object.keys(hours).sort((a,b)=>hours[b]-hours[a]).slice(0,3).map(h=>+h);
+  save();
+}
+function getSmartInsights(){
+  const insights = [];
+  const s = state.smart.suggestedHours || [];
+  if (s.length > 0) insights.push({icon:'⏰', title:'أوقاتك الذهبية', desc:`أنت أكثر نشاطاً في الساعات: ${s.map(h=>h+':00').join(', ')}`});
+  const byDay = [0,0,0,0,0,0,0];
+  state.history.forEach(h => { byDay[new Date(h.date).getDay()] += h.points; });
+  const bestDay = byDay.indexOf(Math.max(...byDay));
+  if (byDay[bestDay] > 0) insights.push({icon:'📅', title:'أفضل يوم', desc:`${DAY_NAMES[bestDay]} أكثر يوم بتنجز فيه`});
+  if (state.stats.currentStreak > 0 && state.stats.lastActiveDate !== todayStr()) insights.push({icon:'⚠️', title:'سلسلتك في خطر!', desc:`سلسلتك (${state.stats.currentStreak} يوم) هتنكسر لو مسجلتش اليوم!`});
+  const byCat = {};
+  state.history.forEach(h => { if (h.categoryId) byCat[h.categoryId] = (byCat[h.categoryId]||0) + h.points; });
+  if (Object.keys(byCat).length) {
+    const best = Object.keys(byCat).reduce((a,b)=>byCat[a]>byCat[b]?a:b);
+    const cat = getCat(best);
+    insights.push({icon:cat.icon, title:`أكثر نشاط: ${cat.name}`, desc:`جمعت ${byCat[best]} نقطة من ${cat.name}`});
+  }
+  if (insights.length === 0) insights.push({icon:'🌱', title:'ابدأ رحلتك', desc:'سجّل إنجازاتك'});
+  return insights;
+}
+async function fetchPrayerTimes(force=false){
+  const today = todayStr();
+  if (!force && state.prayerCache && state.prayerCache.date === today) return state.prayerCache.timings;
+  const method = state.settings.method || 5;
+  let lat = state.settings.lat || 30.0444, lng = state.settings.lng || 31.2357;
+  try {
+    const pos = await new Promise((res, rej) => {
+      if (!navigator.geolocation) return rej(new Error('no geo'));
+      navigator.geolocation.getCurrentPosition(res, rej, {timeout:5000, maximumAge:600000});
+    });
+    lat = pos.coords.latitude; lng = pos.coords.longitude;
+    state.settings.lat = lat; state.settings.lng = lng; save();
+  } catch(e){}
+  const data = await (await fetch(`https://api.aladhan.com/v1/timings?latitude=${lat}&longitude=${lng}&method=${method}`)).json();
+  const clean = {};
+  Object.keys(data.data.timings).forEach(k => { clean[k] = data.data.timings[k].split(' ')[0]; });
+  state.prayerCache = {date:today, timings:clean};
+  save();
+  return clean;
+}
+async function initFirebaseIfConfigured(){
+  const cfgStr = localStorage.getItem(FB_STORAGE_KEY);
+  if (!cfgStr || typeof firebase === 'undefined') return false;
+  try { const cfg = JSON.parse(cfgStr); if (!firebase.apps.length) firebase.initializeApp(cfg); return true; } catch(e){ return false; }
+}
+async function loginGoogle(){ try { await firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider()); } catch(e){ if (e.code === 'auth/popup-blocked') toast('افتح النوافذ','info'); else showAuthError(translateAuthError(e.code)); } }
+async function loginEmail(){
+  const email = $('#authEmail').value.trim(), pass = $('#authPassword').value;
+  if (!email || !pass) return showAuthError('املأ البيانات');
+  try { await firebase.auth().signInWithEmailAndPassword(email, pass); } catch(e){ showAuthError(translateAuthError(e.code)); }
+}
+async function signupEmail(){
+  const email = $('#authEmail').value.trim(), pass = $('#authPassword').value;
+  if (!email || !pass) return showAuthError('املأ البيانات');
+  if (pass.length < 6) return showAuthError('6 أحرف على الأقل');
+  try { await firebase.auth().createUserWithEmailAndPassword(email, pass); } catch(e){ showAuthError(translateAuthError(e.code)); }
+}
+function translateAuthError(code){
+  const map = {'auth/invalid-email':'بريد غير صالح','auth/user-not-found':'المستخدم غير موجود','auth/wrong-password':'كلمة المرور خاطئة','auth/email-already-in-use':'البريد مستخدم','auth/weak-password':'كلمة المرور ضعيفة','auth/too-many-requests':'محاولات كثيرة','auth/network-request-failed':'تحقق من الاتصال','auth/operation-not-allowed':'الطريقة غير مفعلة'};
+  return map[code] || 'حدث خطأ: ' + (code || '');
+}
+function showAuthError(msg){ const el = $('#authError'); el.textContent = msg; el.style.display = 'block'; setTimeout(() => { el.style.display = 'none'; }, 5000); }
+function skipAuth(){ document.body.classList.remove('auth-mode'); firebaseReady = false; render(); }
+async function logout(){ if (!confirm('تسجيل الخروج؟')) return; try { await firebase.auth().signOut(); firebaseReady = false; document.body.classList.add('auth-mode'); } catch(e){ toast('فشل','info'); } }
+async function loadCloudData(){
+  if (!firebaseReady) return;
+  const user = firebase.auth().currentUser; if (!user) return;
+  try {
+    const doc = await firebase.firestore().collection('users').doc(user.uid).get();
+    if (doc.exists && doc.data().state) {
+      const cloudState = JSON.parse(doc.data().state);
+      if ((cloudState.stats?.totalPoints || 0) >= state.stats.totalPoints) {
+        state = cloudState;
+        state.settings = Object.assign(defaultState().settings, state.settings || {});
+        state.smart = Object.assign(defaultState().smart, state.smart || {});
+        state.groups = state.groups || [];
+        save();
+      } else { await syncToCloud(true); }
+    } else { await syncToCloud(true); }
+    await updatePublicProfile();
+  } catch(e){ console.log('Load cloud error:', e); }
+}
+async function syncToCloud(silent=false){
+  if (!firebaseReady) return false;
+  try {
+    const user = firebase.auth().currentUser; if (!user) return false;
+    await firebase.firestore().collection('users').doc(user.uid).set({state: JSON.stringify(state), updatedAt: firebase.firestore.FieldValue.serverTimestamp()}, {merge:true});
+    state.lastSyncAt = Date.now(); save();
+    await updatePublicProfile();
+    if (!silent) toast('☁️ تم الرفع', 'success');
+    return true;
+  } catch(e) { if (!silent) toast('❌ فشل','info'); return false; }
+}
+async function syncFromCloud(){
+  if (!firebaseReady) { toast('غير متصل','info'); return; }
+  const user = firebase.auth().currentUser; if (!user) return;
+  try {
+    const doc = await firebase.firestore().collection('users').doc(user.uid).get();
+    if (!doc.exists || !doc.data().state) { toast('لا توجد بيانات','info'); return; }
+    if (!confirm('استبدال الحالي؟')) return;
+    state = JSON.parse(doc.data().state);
+    state.settings = Object.assign(defaultState().settings, state.settings || {});
+    state.smart = Object.assign(defaultState().smart, state.smart || {});
+    state.groups = state.groups || [];
+    save(); applyTheme(); render();
+    toast('☁️ تم','success');
+  } catch(e){ toast('فشل','info'); }
+}
+async function updatePublicProfile(){
+  if (!firebaseReady) return;
+  const user = firebase.auth().currentUser; if (!user) return;
+  try {
+    await firebase.firestore().collection('publicProfiles').doc(user.uid).set({
+      uid: user.uid, displayName: state.settings.displayName || user.displayName || (user.email || '').split('@')[0] || 'مستخدم',
+      email: user.email || null, photoURL: user.photoURL || null,
+      totalPoints: state.stats.totalPoints, currentStreak: state.stats.currentStreak, longestStreak: state.stats.longestStreak,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, {merge:true});
+  } catch(e){}
+}
+async function openLeaderboard(){ lbTab = 'global'; $('#leaderboardModal').classList.add('open'); await renderLeaderboard(); }
+async function renderLeaderboard(){
+  const el = $('#leaderboardContent');
+  if (!firebaseReady) { el.innerHTML = `<div class="empty-state">🔒 يحتاج تسجيل دخول</div>`; return; }
+  el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted)">جاري التحميل...</div>`;
+  try {
+    let profiles;
+    if (lbTab === 'global') {
+      const snap = await firebase.firestore().collection('publicProfiles').orderBy('totalPoints','desc').limit(50).get();
+      profiles = snap.docs.map(d => d.data());
+    } else {
+      const {friends} = await loadFriends();
+      profiles = friends.sort((a,b) => (b.totalPoints||0) - (a.totalPoints||0));
+      if (profiles.length === 0) { el.innerHTML = `<div class="empty-state">لا أصدقاء</div>`; return; }
+    }
+    const myUid = firebase.auth().currentUser?.uid;
+    let html = '';
+    profiles.forEach((p, i) => {
+      const isMe = p.uid === myUid; const rank = i + 1;
+      const rankClass = rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : isMe ? 'me' : '';
+      html += `<div class="leader-row" style="${isMe?'border:2px solid var(--p1)':''}">
+        <div class="leader-rank ${rankClass}">${rank <= 3 ? ['🥇','🥈','🥉'][rank-1] : rank}</div>
+        <div class="leader-avatar">${p.photoURL ? `<img src="${p.photoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">` : (p.displayName||'?')[0]}</div>
+        <div class="leader-body"><div class="leader-name">${p.displayName||'مستخدم'}${isMe?' (أنت)':''}</div><div class="leader-sub">🔥 ${p.currentStreak||0}</div></div>
+        <div class="leader-points">${p.totalPoints||0}</div></div>`;
+    });
+    el.innerHTML = html;
+  } catch(e) { el.innerHTML = `<div class="empty-state">❌ فشل — تحقق من Security Rules</div>`; }
+}
+async function loadFriends(){
+  const myUid = firebase.auth().currentUser?.uid;
+  if (!myUid) return {friends:[], requests:[]};
+  try {
+    const snap = await firebase.firestore().collection('friendships').where('users','array-contains',myUid).get();
+    const friends = [], requests = [];
+    for (const doc of snap.docs) {
+      const data = doc.data();
+      const otherUid = data.users.find(u => u !== myUid);
+      const pDoc = await firebase.firestore().collection('publicProfiles').doc(otherUid).get();
+      const profile = pDoc.exists ? pDoc.data() : {uid:otherUid, displayName:'مستخدم', totalPoints:0};
+      if (data.status === 'accepted') friends.push({...profile, friendshipId: doc.id});
+      else if (data.status === 'pending' && data.requestedBy !== myUid) requests.push({...profile, friendshipId: doc.id});
+    }
+    return {friends, requests};
+  } catch(e) { return {friends:[], requests:[]}; }
+}
+function openFriends(){ $('#friendsModal').classList.add('open'); renderFriends(); }
+async function renderFriends(){
+  const el = $('#friendsContent');
+  if (!firebaseReady) { el.innerHTML = `<div class="empty-state">🔒 يحتاج دخول</div>`; return; }
+  el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted)">جاري التحميل...</div>`;
+  const {friends, requests} = await loadFriends();
+  let html = '';
+  if (requests.length > 0) {
+    html += `<h3 style="font-size:14px;font-weight:800;color:var(--text-soft);margin:10px 0">📬 طلبات (${requests.length})</h3>`;
+    requests.forEach(r => {
+      html += `<div class="leader-row"><div class="leader-avatar">${(r.displayName||'?')[0]}</div><div class="leader-body"><div class="leader-name">${r.displayName}</div></div>
+        <button class="btn btn-success btn-icon" onclick="acceptFriend('${r.friendshipId}')">✓</button>
+        <button class="btn btn-danger btn-icon" onclick="rejectFriend('${r.friendshipId}')">✕</button></div>`;
+    });
+  }
+  if (friends.length > 0) {
+    html += `<h3 style="font-size:14px;font-weight:800;color:var(--text-soft);margin:16px 0 10px">👥 أصدقاء (${friends.length})</h3>`;
+    friends.forEach(f => {
+      html += `<div class="leader-row"><div class="leader-avatar">${(f.displayName||'?')[0]}</div>
+        <div class="leader-body"><div class="leader-name">${f.displayName}</div><div class="leader-sub">⭐ ${f.totalPoints||0}</div></div>
+        <button class="btn btn-icon btn-danger" onclick="removeFriend('${f.friendshipId}')">🗑️</button></div>`;
+    });
+  }
+  if (friends.length === 0 && requests.length === 0) html += `<div class="empty-state">لا أصدقاء</div>`;
+  el.innerHTML = html;
+}
+async function addFriend(){
+  const email = $('#friendEmail').value.trim();
+  if (!email) return toast('اكتب البريد','info');
+  const myUid = firebase.auth().currentUser?.uid;
+  if (!myUid) return toast('سجل دخول','info');
+  if (firebase.auth().currentUser.email === email) return toast('نفسك!','info');
+  try {
+    const snap = await firebase.firestore().collection('publicProfiles').where('email','==',email).limit(1).get();
+    if (snap.empty) return toast('❌ غير موجود','info');
+    const targetUid = snap.docs[0].id;
+    const ids = [myUid, targetUid].sort(); const fid = ids.join('_');
+    const existing = await firebase.firestore().collection('friendships').doc(fid).get();
+    if (existing.exists) return toast('موجود','info');
+    await firebase.firestore().collection('friendships').doc(fid).set({users: ids, requestedBy: myUid, status: 'pending', createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+    toast('✅ تم','success'); $('#friendEmail').value = ''; renderFriends();
+  } catch(e) { toast('❌ فشل','info'); }
+}
+async function acceptFriend(fid){ try { await firebase.firestore().collection('friendships').doc(fid).update({status:'accepted'}); toast('✅','success'); renderFriends(); } catch(e){ toast('فشل','info'); } }
+async function rejectFriend(fid){ if (!confirm('رفض؟')) return; try { await firebase.firestore().collection('friendships').doc(fid).delete(); toast('تم','info'); renderFriends(); } catch(e){ toast('فشل','info'); } }
+async function removeFriend(fid){ if (!confirm('حذف؟')) return; try { await firebase.firestore().collection('friendships').doc(fid).delete(); toast('تم','info'); renderFriends(); } catch(e){ toast('فشل','info'); } }
+function openGroupModal(){ $('#groupName').value = ''; $('#groupEmoji').value = '👥'; $('#groupModal').classList.add('open'); }
+async function saveGroup(){
+  const name = $('#groupName').value.trim(); const emoji = $('#groupEmoji').value;
+  if (!name) return toast('اكتب اسم','info');
+  if (!firebaseReady) return toast('سجل دخول','info');
+  const user = firebase.auth().currentUser;
+  const groupId = uid();
+  try {
+    await firebase.firestore().collection('groups').doc(groupId).set({id: groupId, name, emoji, ownerUid: user.uid, createdAt: Date.now()});
+    await firebase.firestore().collection('groupMembers').doc(groupId + '_' + user.uid).set({groupId, uid: user.uid, joinedAt: Date.now(), score: 0, displayName: state.settings.displayName || user.displayName || 'مستخدم'});
+    toast('✅','success'); $('#groupModal').classList.remove('open'); render();
+  } catch(e){ toast('❌','info'); }
+}
+async function loadMyGroups(){
+  if (!firebaseReady) return [];
+  const user = firebase.auth().currentUser; if (!user) return [];
+  try {
+    const memberSnap = await firebase.firestore().collection('groupMembers').where('uid','==',user.uid).get();
+    const groupIds = memberSnap.docs.map(d => d.data().groupId);
+    if (groupIds.length === 0) return [];
+    const groups = [];
+    for (const gid of groupIds) {
+      const gDoc = await firebase.firestore().collection('groups').doc(gid).get();
+      if (!gDoc.exists) continue;
+      const membersSnap = await firebase.firestore().collection('groupMembers').where('groupId','==',gid).get();
+      const members = membersSnap.docs.map(d => d.data());
+      groups.push({...gDoc.data(), members});
+    }
+    return groups;
+  } catch(e) { return []; }
+}
+async function leaveGroup(gid){
+  if (!confirm('مغادرة؟')) return;
+  if (!firebaseReady) return;
+  const user = firebase.auth().currentUser;
+  try { await firebase.firestore().collection('groupMembers').doc(gid + '_' + user.uid).delete(); toast('غادرت','info'); render(); } catch(e){ toast('فشل','info'); }
+}
+async function renderGroups(){
+  if (!firebaseReady) return `<div class="empty-state">🔒 سجّل دخول</div>`;
+  const groups = await loadMyGroups();
+  let html = `<button class="btn btn-primary" style="width:100%;padding:14px;margin-bottom:16px;font-size:14px" onclick="openGroupModal()">➕ إنشاء مجموعة</button>`;
+  if (groups.length === 0) html += `<div class="empty-state">لا مجموعات</div>`;
+  else groups.forEach(g => {
+    const members = g.members.slice(0, 8);
+    html += `<div class="group-card my">
+      <div class="group-header"><div class="group-emoji">${g.emoji}</div>
+      <div class="group-info"><div class="group-name">${g.name}</div><div class="group-meta">${g.members.length} عضو</div></div>
+      <button class="btn btn-icon btn-danger" onclick="leaveGroup('${g.id}')">🚪</button></div>
+      <div class="group-members">${members.map(m=>`<div class="group-member">${(m.displayName||'?')[0]}</div>`).join('')}</div>
+    </div>`;
+  });
+  return html;
+}
+function openShare(){
+  const today = state.history.filter(h => h.date === todayStr());
+  const todayPts = today.reduce((s,h)=>s+h.points,0);
+  $('#sharePreview').innerHTML = `<div class="hero-card" style="margin-bottom:16px">
+    <div style="font-size:13px;opacity:.9;font-weight:700;margin-bottom:8px">📊 إحصائياتي</div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="hero-stat-value">${state.stats.totalPoints}</div><div class="hero-stat-label">نقطة</div></div>
+      <div class="hero-stat"><div class="hero-stat-value">🔥 ${state.stats.currentStreak}</div><div class="hero-stat-label">سلسلة</div></div>
+      <div class="hero-stat"><div class="hero-stat-value">${todayPts}</div><div class="hero-stat-label">اليوم</div></div>
+    </div></div>`;
+  state.pendingShare = `📊 إحصائياتي في العادات الذرية:\n⭐ ${state.stats.totalPoints} نقطة\n🔥 ${state.stats.currentStreak} يوم متواصل\n✅ ${todayPts} نقطة اليوم\n\nجرّب التطبيق! 🚀`;
+  save();
+  $('#shareModal').classList.add('open');
+}
+async function shareTo(target){
+  const text = state.pendingShare || '';
+  if (target === 'copy') { try { await navigator.clipboard.writeText(text); toast('📋','success'); } catch(e){ toast('فشل','info'); } return; }
+  if (target === 'whatsapp') { window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank'); return; }
+  if (target === 'twitter') { window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(text), '_blank'); return; }
+  if (target === 'native') { if (navigator.share) { try { await navigator.share({title: 'العادات الذرية', text}); } catch(e){} } else toast('غير مدعوم','info'); }
+}
+function exportData(){
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob); const a = document.createElement('a');
+  a.href = url; a.download = `atomic-habits-${todayStr()}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  toast('✅','success');
+}
+function importData(file){
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.stats || !data.categories) throw new Error('invalid');
+      if (!confirm('استبدال؟')) return;
+      state = data;
+      state.badges = state.badges || {};
+      state.settings = Object.assign(defaultState().settings, state.settings || {});
+      state.smart = Object.assign(defaultState().smart, state.smart || {});
+      state.groups = state.groups || [];
+      save(); applyTheme(); render();
+      toast('✅','success');
+    } catch(err) { toast('❌','info'); }
+  };
+  reader.readAsText(file);
+}
+async function registerSW(){
+  if ('serviceWorker' in navigator) {
+    try {
+      const reg = await navigator.serviceWorker.register('./sw.js', { scope: './' });
+      console.log('✅ Service Worker registered:', reg.scope);
+      reg.addEventListener('updatefound', () => {
+        const newSW = reg.installing;
+        newSW.addEventListener('statechange', () => {
+          if (newSW.state === 'installed' && navigator.serviceWorker.controller) toast('🔄 تحديث متوفر','info');
+        });
+      });
+    } catch (e) { console.warn('SW registration failed:', e); }
+  }
+}
+function renderInstallBanner(){
+  if (!deferredPrompt) return '';
+  return `<div class="install-banner"><div><div style="font-weight:800;font-size:14px">📲 ثبّت التطبيق</div><div style="font-size:11px;opacity:.9;font-weight:600">افتحه بضغطة</div></div><button id="installBtn">تثبيت</button></div>`;
+}
+function bindInstall(){
+  const btn = document.getElementById('installBtn'); if (!btn) return;
+  btn.onclick = async () => { if (!deferredPrompt) return; deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; render(); };
+}
+function renderHeader(){
+  $('#pointsBadge').textContent = `⭐ ${state.stats.totalPoints}`;
+  const av = $('#userAvatar');
+  if (av) {
+    const user = firebaseReady ? firebase.auth().currentUser : null;
+    if (user) {
+      const name = state.settings.displayName || user.displayName || (user.email||'')[0] || '👤';
+      if (user.photoURL) av.innerHTML = `<img src="${user.photoURL}" style="width:100%;height:100%;object-fit:cover">`;
+      else av.textContent = name[0];
+    } else av.textContent = '👤';
+  }
+}
+function renderReminderCard(r, compact){
+  const cat = getCat(r.categoryId); const today = todayStr();
+  const isDone = !!(r.done && r.done[today]);
+  let sub = r.time;
+  if (r.repeat === 'daily') sub += ' • كل يوم';
+  else if (r.repeat === 'weekly') sub += ' • ' + (r.days||[]).map(d=>DAY_NAMES[d]).join(', ');
+  else sub += ' • مرة';
+  return `<div class="card ${isDone?'done':''}">
+    <div class="card-icon" style="background:${cat.color}22;color:${cat.color}">${cat.icon}</div>
+    <div class="card-body"><div class="card-title">${r.title || cat.name}</div><div class="card-sub">${sub}${!r.enabled?' • ⏸️':''}</div></div>
+    <div class="card-actions">
+      <button class="btn-check ${isDone?'done':''}" onclick="toggleReminderDone('${r.id}')">${isDone?'✓':'○'}</button>
+      ${compact?'':`<button class="btn btn-icon btn-ghost" onclick="toggleReminderEnabled('${r.id}')">${r.enabled?'⏸️':'▶️'}</button><button class="btn btn-icon btn-danger" onclick="deleteReminder('${r.id}')">🗑️</button>`}
+    </div></div>`;
+}
+function renderChallengeCard(c, compact){
+  const cat = getCat(c.categoryId); const st = getChallengeStatus(c);
+  const doneToday = !!(c.logs && c.logs[todayStr()]);
+  const pct = Math.min(100, Math.round(st.completed / st.expected * 100));
+  const statusLabel = st.status === 'completed' ? '✅ مكتمل' : st.status === 'expired' ? '⌛ منتهي' : `اليوم ${st.completed}/${st.expected}`;
+  return `<div class="card" style="flex-direction:column;align-items:stretch">
+    <div style="display:flex;gap:12px;align-items:center">
+      <div class="card-icon" style="background:${cat.color}22;color:${cat.color}">${cat.icon}</div>
+      <div class="card-body"><div class="card-title">${c.title}</div><div class="card-sub">${c.time} • ${statusLabel}</div></div>
+      ${st.status==='active' ? `<button class="btn-check ${doneToday?'done':''}" onclick="completeChallengeDay('${c.id}')">${doneToday?'✓':'○'}</button>` : `<div style="font-size:22px">${st.status==='completed'?'🏆':'⌛'}</div>`}
+    </div>
+    <div class="progress"><div class="progress-fill" style="width:${pct}%;${st.status==='completed'?'background:#10b981':''}"></div></div>
+    ${compact?'':`<div style="margin-top:10px;display:flex;justify-content:flex-end"><button class="btn btn-icon btn-danger" onclick="deleteChallenge('${c.id}')">🗑️</button></div>`}
+  </div>`;
+}
+function renderPrayerTimesCard(){
+  if (!state.prayerCache || state.prayerCache.date !== todayStr()) return '';
+  const t = state.prayerCache.timings;
+  const prayers = [['Fajr','الفجر'],['Dhuhr','الظهر'],['Asr','العصر'],['Maghrib','المغرب'],['Isha','العشاء']];
+  let html = `<h2 class="section-title">🕌 مواقيت الصلاة</h2><div class="prayer-card">`;
+  prayers.forEach(([k,name]) => { if (t[k]) html += `<div class="prayer-row"><span class="prayer-name">${name}</span><span class="prayer-time">${t[k]}</span></div>`; });
+  return html + `</div>`;
+}
+function renderHome(){
+  const todayReminders = getTodayReminders();
+  const activeChallenges = state.challenges.filter(c=>getChallengeStatus(c).status==='active');
+  let html = renderInstallBanner();
+  html += `<div class="hero-card">
+    <div style="font-size:14px;font-weight:700;opacity:.9;margin-bottom:12px">${new Date().toLocaleDateString('ar-EG',{weekday:'long',day:'numeric',month:'long'})}</div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="hero-stat-value">${state.stats.totalPoints}</div><div class="hero-stat-label">نقطة</div></div>
+      <div class="hero-stat"><div class="hero-stat-value">🔥 ${state.stats.currentStreak}</div><div class="hero-stat-label">سلسلة</div></div>
+      <div class="hero-stat"><div class="hero-stat-value">${state.stats.longestStreak}</div><div class="hero-stat-label">أطول</div></div>
+    </div></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-ghost" style="flex:1" onclick="openShare()">📤 شارك</button>
+      <button class="btn btn-ghost" style="flex:1" onclick="openSmart()">🧠 ذكي</button>
+    </div>`;
+  html += renderPrayerTimesCard();
+  html += `<h2 class="section-title">⏰ تنبيهات اليوم</h2>`;
+  if (todayReminders.length === 0) html += `<div class="empty-state">لا تنبيهات<br><small>اضغط +</small></div>`;
+  else todayReminders.forEach(r => { html += renderReminderCard(r, true); });
+  if (activeChallenges.length > 0) {
+    html += `<h2 class="section-title">🎯 تحدياتك</h2>`;
+    activeChallenges.forEach(c => { html += renderChallengeCard(c, true); });
+  }
+  return html;
+}
+function renderRemindersTab(){
+  const reminders = [...state.reminders].sort((a,b)=>a.time.localeCompare(b.time));
+  if (reminders.length === 0) return `<div class="empty-state">لا تنبيهات<br><small>اضغط +</small></div>`;
+  return reminders.map(r => renderReminderCard(r, false)).join('');
+}
+function renderChallengesTab(){
+  const list = [...state.challenges].sort((a,b)=>b.startDate.localeCompare(a.startDate));
+  if (list.length === 0) return `<div class="empty-state">لا تحديات<br><small>اضغط +</small></div>`;
+  return list.map(c => renderChallengeCard(c, false)).join('');
+}
+function computeAdvancedStats(){
+  const today = new Date();
+  const firstDate = state.history.length ? state.history[0].date : null;
+  const activeDays = new Set(state.history.map(h => h.date)).size;
+  let adherencePct = 0, avgPerDay = 0;
+  if (firstDate) {
+    const days = Math.max(1, Math.floor((today - new Date(firstDate)) / 86400000) + 1);
+    adherencePct = Math.round(activeDays / days * 100);
+    avgPerDay = Math.round(state.stats.totalPoints / days);
+  }
+  const byDay = [0,0,0,0,0,0,0];
+  state.history.forEach(h => { byDay[new Date(h.date).getDay()] += h.points; });
+  const bestDay = byDay.indexOf(Math.max(...byDay));
+  const byCat = {};
+  state.history.forEach(h => { if (h.categoryId) byCat[h.categoryId] = (byCat[h.categoryId]||0) + h.points; });
+  let bestCat = null;
+  if (Object.keys(byCat).length) { const bestId = Object.keys(byCat).reduce((a,b)=>byCat[a]>byCat[b]?a:b); bestCat = getCat(bestId); }
+  const thisWeek = state.history.filter(h => h.date >= dateStr(new Date(Date.now() - 6*86400000))).reduce((s,h)=>s+h.points,0);
+  const lastWeek = state.history.filter(h => h.date >= dateStr(new Date(Date.now() - 13*86400000)) && h.date < dateStr(new Date(Date.now() - 6*86400000))).reduce((s,h)=>s+h.points,0);
+  const weekDiff = lastWeek > 0 ? Math.round((thisWeek - lastWeek) / lastWeek * 100) : (thisWeek > 0 ? 100 : 0);
+  return {adherencePct, activeDays, avgPerDay, bestDay: byDay[bestDay] > 0 ? DAY_NAMES[bestDay] : '-', bestCat, thisWeek, weekDiff};
+}
+function renderStatsTab(){
+  const adv = computeAdvancedStats();
+  const totalCompletions = state.history.length;
+  const last7 = {};
+  for (let i=0;i<7;i++){ const d = dateStr(new Date(Date.now() - i*86400000)); last7[d] = state.history.filter(h=>h.date===d).reduce((s,h)=>s+h.points,0); }
+  const weekPts = Object.values(last7).reduce((a,b)=>a+b,0);
+  const maxWeek = Math.max(1, ...Object.values(last7));
+  let html = `<div class="stat-grid">
+    <div class="stat-card"><div class="val">${state.stats.totalPoints}</div><div class="lbl">إجمالي</div></div>
+    <div class="stat-card"><div class="val">🔥 ${state.stats.currentStreak}</div><div class="lbl">السلسلة</div></div>
+    <div class="stat-card"><div class="val">${state.stats.longestStreak}</div><div class="lbl">أطول</div></div>
+    <div class="stat-card"><div class="val">${totalCompletions}</div><div class="lbl">إنجاز</div></div>
+  </div>`;
+  html += `<h2 class="section-title">📈 متقدمة</h2><div class="stat-grid-3">
+    <div class="stat-card small"><div class="val">${adv.adherencePct}%</div><div class="lbl">الالتزام</div></div>
+    <div class="stat-card small"><div class="val">${adv.activeDays}</div><div class="lbl">يوم نشط</div></div>
+    <div class="stat-card small"><div class="val">${adv.avgPerDay}</div><div class="lbl">متوسط</div></div>
+  </div><div class="stat-grid-3">
+    <div class="stat-card small"><div class="val" style="font-size:14px">${adv.bestDay}</div><div class="lbl">أفضل يوم</div></div>
+    <div class="stat-card small"><div class="val" style="font-size:20px">${adv.bestCat ? adv.bestCat.icon : '-'}</div><div class="lbl">${adv.bestCat ? adv.bestCat.name : '—'}</div></div>
+    <div class="stat-card small"><div class="val" style="color:${adv.weekDiff >= 0 ? 'var(--success)' : 'var(--danger)'}">${adv.weekDiff >= 0 ? '+' : ''}${adv.weekDiff}%</div><div class="lbl">مقارنة</div></div>
+  </div>`;
+  html += `<button class="btn btn-primary" style="width:100%;padding:14px;margin-bottom:16px" onclick="openLeaderboard()">🏆 لوحة الصدارة</button>`;
+  html += `<h2 class="section-title">📊 التوزيع</h2><div class="chart-container"><canvas id="catChart"></canvas></div>`;
+  html += `<h2 class="section-title">🏅 الشارات (${Object.keys(state.badges).length}/${BADGES.length})</h2><div class="badges-grid">`;
+  BADGES.forEach(b => {
+    const unlocked = !!state.badges[b.id];
+    html += `<div class="badge-card ${unlocked?'unlocked':'locked'}"><div class="badge-icon">${b.icon}</div><div class="badge-name">${b.name}</div><div class="badge-desc">${b.desc}</div></div>`;
+  });
+  html += `</div>`;
+  html += `<div class="stat-card" style="margin-bottom:16px"><div class="lbl" style="margin-bottom:10px">📅 آخر 7 أيام (${weekPts})</div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;height:100px;gap:6px;padding-top:10px">`;
+  Object.keys(last7).reverse().forEach(d=>{
+    const v = last7[d]; const h = Math.max(4, (v/maxWeek)*80); const isToday = d===todayStr();
+    html += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+      <div style="font-size:10px;font-weight:800;color:${isToday?'var(--p1)':'var(--text-muted)'}">${v}</div>
+      <div style="width:100%;height:${h}px;background:${isToday?'linear-gradient(180deg,var(--p1),var(--p2))':'var(--border)'};border-radius:6px"></div>
+      <div style="font-size:9px;color:var(--text-faint);font-weight:700">${DAY_NAMES[new Date(d).getDay()]}</div></div>`;
+  });
+  html += `</div></div>`;
+  html += `<h2 class="section-title">📜 آخر الإنجازات</h2>`;
+  const recent = [...state.history].reverse().slice(0,10);
+  if (recent.length===0) html += `<div class="empty-state">لسه</div>`;
+  else recent.forEach(h=>{
+    html += `<div class="card" style="padding:10px 14px"><div class="card-body"><div class="card-title" style="font-size:13px">${h.reason}</div><div class="card-sub" style="font-size:11px">${h.date}</div></div><div style="font-weight:800;color:var(--success);font-size:13px">+${h.points}</div></div>`;
+  });
+  return html;
+}
+function renderCategoryChart(){
+  const canvas = document.getElementById('catChart');
+  if (!canvas || typeof Chart === 'undefined') return;
+  const cutoff = dateStr(new Date(Date.now() - 30*86400000));
+  const totals = {};
+  state.history.forEach(h => { if (h.date < cutoff) return; const cid = h.categoryId || 'other'; totals[cid] = (totals[cid]||0) + h.points; });
+  if (Object.keys(totals).length === 0) { canvas.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-faint);font-weight:700">لا بيانات</div>'; return; }
+  const labels = [], data = [], colors = [];
+  Object.keys(totals).forEach(id => { const c = getCat(id); labels.push(`${c.icon} ${c.name}`); data.push(totals[id]); colors.push(c.color); });
+  if (categoryChart) categoryChart.destroy();
+  categoryChart = new Chart(canvas, {type: 'doughnut', data: {labels, datasets: [{data, backgroundColor: colors, borderWidth: 0}]}, options: {responsive: true, maintainAspectRatio: false, plugins: {legend: {position: 'bottom', labels: {font: {family: 'Cairo', size: 11, weight: '700'}, color: state.settings.theme === 'dark' ? '#f1f5f9' : '#1e293b', padding: 8, boxWidth: 12}}}, cutout: '60%'}});
+}
+function renderSettings(){
+  const isDark = state.settings.theme === 'dark';
+  const fbCfg = localStorage.getItem(FB_STORAGE_KEY);
+  const user = firebaseReady ? firebase.auth().currentUser : null;
+  const syncStatus = firebaseReady ? '<span class="sync-badge online">☁️ متصل</span>' : fbCfg ? '<span class="sync-badge offline">⚠️</span>' : '<span class="sync-badge offline">⚪</span>';
+  let html = `<h2 class="section-title">⚙️ الإعدادات</h2>`;
+  if (user) {
+    const name = state.settings.displayName || user.displayName || (user.email||'').split('@')[0];
+    html += `<div class="profile-card" onclick="openProfileMenu()" style="cursor:pointer">
+      <div class="profile-avatar">${user.photoURL ? `<img src="${user.photoURL}" style="width:100%;height:100%;object-fit:cover">` : (name[0]||'👤')}</div>
+      <div class="profile-info"><div class="profile-name">${name}</div><div class="profile-email">${user.email || 'Google'}</div></div>
+      <div style="font-size:22px">›</div></div>`;
+  }
+  html += `<h2 class="section-title">🎨 المظهر</h2>
+    <div class="setting-row"><div class="setting-info"><div class="setting-title">🌙 الوضع الليلي</div></div><div class="toggle ${isDark?'on':''}" onclick="toggleTheme()"></div></div>
+    <div class="setting-row" style="flex-direction:column;align-items:stretch"><div class="setting-info"><div class="setting-title" style="margin-bottom:10px">🎨 الثيم</div></div>
+    <div class="theme-grid">${THEMES.map(t => `<div class="theme-swatch ${state.settings.palette===t.id?'active':''}" style="background:linear-gradient(135deg,${t.c1},${t.c2})" onclick="setPalette('${t.id}')"></div>`).join('')}</div></div>`;
+  html += `<h2 class="section-title">☁️ السحابة ${syncStatus}</h2>`;
+  if (!fbCfg) {
+    html += `<div class="setting-row"><div class="setting-info"><div class="setting-title">ربط Firebase</div><div class="setting-desc">مزامنة + صدارة + مجموعات</div></div><button class="btn btn-primary" onclick="openFirebaseModal()">ربط</button></div>`;
+  } else if (!user) {
+    html += `<div class="setting-row"><div class="setting-info"><div class="setting-title">🔑 سجّل دخول</div></div><button class="btn btn-primary" onclick="showAuthScreen()">دخول</button></div>
+      <div class="setting-row"><div class="setting-info"><div class="setting-title" style="color:var(--danger)">إزالة</div></div><button class="btn btn-danger" onclick="disconnectFirebase()">إزالة</button></div>`;
+  } else {
+    html += `<div class="setting-row"><div class="setting-info"><div class="setting-title">مزامنة</div></div><button class="btn btn-primary" onclick="syncToCloud()">☁️ رفع</button></div>
+      <div class="setting-row"><div class="setting-info"><div class="setting-title">تنزيل</div></div><button class="btn btn-ghost" onclick="syncFromCloud()">☁️</button></div>
+      <div class="setting-row"><div class="setting-info"><div class="setting-title" style="color:var(--danger)">فصل</div></div><button class="btn btn-danger" onclick="disconnectFirebase()">فصل</button></div>`;
+  }
+  html += `<h2 class="section-title">🕌 الصلاة</h2>
+    <div class="setting-row"><div class="setting-info"><div class="setting-title">طريقة الحساب</div></div>
+    <select id="methodSelect" style="padding:8px 12px;border-radius:10px;font-family:inherit;font-weight:700;background:var(--bg-soft);border:2px solid var(--border);color:var(--text);font-size:13px">${PRAYER_METHODS.map(m=>`<option value="${m.id}" ${m.id==state.settings.method?'selected':''}>${m.name}</option>`).join('')}</select></div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-title">جلب المواقيت</div></div><button class="btn btn-primary" onclick="refreshPrayerTimes()">جلب</button></div>`;
+  const nar = state.settings.noAchievementReminder || {enabled:false, time:'21:00'};
+  html += `<h2 class="section-title">🔔 إشعارات</h2>
+    <div class="setting-row"><div class="setting-info"><div class="setting-title">حالة</div><div class="setting-desc">${'Notification' in window ? (Notification.permission==='granted'?'✅ مسموح':'⚠️') : '❌'}</div></div><button class="btn btn-primary" onclick="requestNotifPermission().then(()=>{render();toast('تم','success')})">طلب</button></div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-title">⏰ "لم تسجل اليوم"</div></div><div class="toggle ${nar.enabled?'on':''}" onclick="toggleNoAch()"></div></div>`;
+  if (nar.enabled) {
+    html += `<div class="setting-row"><div class="setting-info"><div class="setting-title">الوقت</div></div><input type="time" value="${nar.time}" onchange="state.settings.noAchievementReminder.time=this.value;save()" style="padding:8px;border-radius:10px;border:2px solid var(--border);background:var(--bg-soft);color:var(--text);font-family:inherit;font-weight:700"></div>`;
+  }
+  html += `<div class="setting-row"><div class="setting-info"><div class="setting-title">تجربة</div></div><button class="btn btn-ghost" onclick="testNotification()">🔔</button></div>`;
+  html += `<h2 class="section-title">💾 البيانات</h2>
+    <div class="setting-row"><div class="setting-info"><div class="setting-title">تصدير</div></div><button class="btn btn-ghost" onclick="exportData()">📤</button></div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-title">استيراد</div></div><label class="btn btn-ghost" style="cursor:pointer">📥<input type="file" accept="application/json" style="display:none" onchange="if(this.files[0])importData(this.files[0])"></label></div>`;
+  html += `<h2 class="section-title">📱 التطبيق</h2>`;
+  if (deferredPrompt) html += `<div class="setting-row"><div class="setting-info"><div class="setting-title">تثبيت</div></div><button class="btn btn-success" id="installBtn">تثبيت</button></div>`;
+  else html += `<div class="setting-row"><div class="setting-info"><div class="setting-title">💡 للتثبيت</div><div class="setting-desc">Chrome ← ⋮ ← تثبيت</div></div></div>`;
+  html += `<h2 class="section-title">⚠️ خطر</h2>
+    <div class="setting-row"><div class="setting-info"><div class="setting-title" style="color:var(--danger)">مسح الكل</div></div><button class="btn btn-danger" onclick="resetAll()">🗑️</button></div>`;
+  return html;
+}
+function toggleNoAch(){
+  state.settings.noAchievementReminder = state.settings.noAchievementReminder || {enabled:false, time:'21:00'};
+  state.settings.noAchievementReminder.enabled = !state.settings.noAchievementReminder.enabled;
+  save(); render();
+}
+function testNotification(){ playBeep(); if (navigator.vibrate) navigator.vibrate([200,100,200]); showNotification('🔔 تجربة', 'إشعار'); toast('تم','success'); }
+async function refreshPrayerTimes(){ toast('جاري...','info'); try { await fetchPrayerTimes(true); render(); toast('✅','success'); } catch(e) { toast('❌','info'); } }
+
+async function render(){
+  renderHeader();
+  let html = '';
+  if (currentTab === 'home') html = renderHome();
+  else if (currentTab === 'reminders') html = renderRemindersTab();
+  else if (currentTab === 'challenges') html = renderChallengesTab();
+  else if (currentTab === 'groups') html = await renderGroups();
+  else if (currentTab === 'stats') html = renderStatsTab();
+  else if (currentTab === 'settings') html = renderSettings();
+  $('#content').innerHTML = html;
+  $('#fab').classList.toggle('show', currentTab === 'reminders' || currentTab === 'challenges');
+  $$('.nav-btn').forEach(b=>{ b.classList.toggle('active', b.dataset.tab === currentTab); });
+  bindInstall();
+  if (currentTab === 'settings') {
+    const ms = $('#methodSelect');
+    if (ms) ms.onchange = e => { state.settings.method = +e.target.value; save(); toast('تم','success'); };
+  }
+  if (currentTab === 'stats') setTimeout(renderCategoryChart, 50);
+}
+function openReminderModal(){
+  selectedReminderCat = 'fajr'; selectedReminderDays = [];
+  $('#reminderTitle').value = ''; $('#reminderTime').value = '07:00'; $('#reminderRepeat').value = 'daily';
+  $('#reminderDaysField').style.display = 'none';
+  renderReminderCats(); renderReminderDays(); updatePrayerFetchVisibility();
+  $('#reminderModal').classList.add('open');
+}
+function updatePrayerFetchVisibility(){ $('#prayerFetchField').style.display = CAT_TO_PRAYER[selectedReminderCat] ? 'block' : 'none'; }
+function renderReminderCats(){
+  const el = $('#reminderCats');
+  el.innerHTML = state.categories.map(c=>`<button class="cat-chip ${c.id===selectedReminderCat?'active':''}" data-cat="${c.id}" style="${c.id===selectedReminderCat?`border-color:${c.color};background:${c.color}15`:''}"><span class="em">${c.icon}</span><span class="nm">${c.name}</span></button>`).join('');
+  el.querySelectorAll('.cat-chip').forEach(b=>{ b.onclick = ()=>{ selectedReminderCat = b.dataset.cat; renderReminderCats(); updatePrayerFetchVisibility(); }; });
+}
+function renderReminderDays(){
+  const el = $('#reminderDays');
+  el.innerHTML = DAY_NAMES.map((n,i)=>`<button class="day-btn ${selectedReminderDays.includes(i)?'active':''}" data-day="${i}">${n}</button>`).join('');
+  el.querySelectorAll('.day-btn').forEach(b=>{ b.onclick = ()=>{ const d = +b.dataset.day; if (selectedReminderDays.includes(d)) selectedReminderDays = selectedReminderDays.filter(x=>x!==d); else selectedReminderDays.push(d); renderReminderDays(); }; });
+}
+async function fetchAndSetPrayerTime(){
+  toast('جاري...','info');
+  try { const t = await fetchPrayerTimes(true); const key = CAT_TO_PRAYER[selectedReminderCat]; if (t[key]) { $('#reminderTime').value = t[key]; toast(`✅ ${getCat(selectedReminderCat).name}: ${t[key]}`, 'success'); } } catch(e) { toast('❌','info'); }
+}
+function saveReminder(){
+  const title = $('#reminderTitle').value.trim(), time = $('#reminderTime').value, repeat = $('#reminderRepeat').value;
+  if (!time) return toast('اختر وقت','info');
+  if (repeat === 'weekly' && selectedReminderDays.length === 0) return toast('اختر يوم','info');
+  state.reminders.push({id: uid(), title, time, repeat, days: repeat==='weekly' ? [...selectedReminderDays] : [], categoryId: selectedReminderCat, enabled: true, done: {}, lastFired: null, createdAt: Date.now()});
+  save(); $('#reminderModal').classList.remove('open'); toast('✅','success'); render();
+  requestNotifPermission().then(scheduleTriggerNotifications);
+  if (firebaseReady) syncToCloud(true);
+}
+function openChallengeModal(){
+  selectedChallengeCat = 'fajr';
+  $('#challengeTitle').value = ''; $('#challengeTime').value = '18:00'; $('#challengeDuration').value = 30; $('#challengePerWeek').value = 7;
+  renderChallengeCats(); $('#challengeModal').classList.add('open');
+}
+function renderChallengeCats(){
+  const el = $('#challengeCats');
+  el.innerHTML = state.categories.map(c=>`<button class="cat-chip ${c.id===selectedChallengeCat?'active':''}" data-cat="${c.id}" style="${c.id===selectedChallengeCat?`border-color:${c.color};background:${c.color}15`:''}"><span class="em">${c.icon}</span><span class="nm">${c.name}</span></button>`).join('');
+  el.querySelectorAll('.cat-chip').forEach(b=>{ b.onclick = ()=>{ selectedChallengeCat = b.dataset.cat; renderChallengeCats(); }; });
+}
+function saveChallenge(){
+  const title = $('#challengeTitle').value.trim(), time = $('#challengeTime').value;
+  const durationDays = parseInt($('#challengeDuration').value) || 30;
+  const daysPerWeek = parseInt($('#challengePerWeek').value) || 7;
+  if (!title) return toast('اكتب عنوان','info');
+  if (durationDays < 3) return toast('3 أيام+','info');
+  state.challenges.push({id: uid(), title, time, durationDays, daysPerWeek, categoryId: selectedChallengeCat, startDate: todayStr(), logs: {}, createdAt: Date.now()});
+  save(); $('#challengeModal').classList.remove('open'); toast('🚀','success'); render();
+  if (firebaseReady) syncToCloud(true);
+}
+function openFirebaseModal(){
+  $('#fbConfigInput').value = localStorage.getItem(FB_STORAGE_KEY) || '';
+  $('#firebaseModal').classList.add('open');
+}
+async function saveFirebaseConfig(){
+  const txt = $('#fbConfigInput').value.trim();
+  if (!txt) return toast('الصق config','info');
+  try {
+    const cfg = JSON.parse(txt);
+    if (!cfg.apiKey || !cfg.projectId) throw new Error('invalid');
+    localStorage.setItem(FB_STORAGE_KEY, JSON.stringify(cfg));
+    $('#firebaseModal').classList.remove('open');
+    const ok = await initFirebaseIfConfigured();
+    if (!ok) return toast('⚠️','info');
+    setupAuthListener();
+    document.body.classList.add('auth-mode');
+    toast('✅ سجل دخول','success');
+  } catch(e) { toast('❌ JSON','info'); }
+}
+function disconnectFirebase(){
+  if (!confirm('فصل؟')) return;
+  localStorage.removeItem(FB_STORAGE_KEY);
+  firebaseReady = false; document.body.classList.remove('auth-mode');
+  toast('تم','info'); render();
+}
+function resetAll(){
+  if (!confirm('مسح الكل؟')) return;
+  const theme = state.settings.theme, pal = state.settings.palette;
+  state = defaultState(); state.settings.theme = theme; state.settings.palette = pal;
+  save(); applyTheme(); render(); toast('تم','info');
+}
+function openProfileMenu(){
+  const el = $('#profileContent');
+  const user = firebaseReady ? firebase.auth().currentUser : null;
+  if (!user) {
+    el.innerHTML = `<div class="empty-state">🌐 محلي<br><button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="$('#profileModal').classList.remove('open');currentTab='settings';render()">الإعدادات</button></div>`;
+  } else {
+    const name = state.settings.displayName || user.displayName || (user.email||'').split('@')[0];
+    el.innerHTML = `
+      <div class="profile-card"><div class="profile-avatar">${user.photoURL ? `<img src="${user.photoURL}" style="width:100%;height:100%;object-fit:cover">` : (name[0]||'👤')}</div>
+      <div class="profile-info"><div class="profile-name">${name}</div><div class="profile-email">${user.email || 'Google'}</div></div></div>
+      <div class="field"><label>اسم العرض</label><input id="displayNameInput" value="${state.settings.displayName || name}"></div>
+      <button class="btn btn-primary" style="width:100%;margin-bottom:8px" onclick="saveDisplayName()">💾 حفظ</button>
+      <button class="btn btn-ghost" style="width:100%;margin-bottom:8px" onclick="syncToCloud().then(()=>render())">☁️ مزامنة</button>
+      <button class="btn btn-danger" style="width:100%" onclick="logout()">خروج</button>`;
+  }
+  $('#profileModal').classList.add('open');
+}
+function saveDisplayName(){
+  const v = $('#displayNameInput').value.trim(); if (!v) return;
+  state.settings.displayName = v; save();
+  if (firebaseReady) { updatePublicProfile(); syncToCloud(true); }
+  toast('✅','success'); openProfileMenu();
+}
+function openSmart(){ $('#smartModal').classList.add('open'); renderSmart(); }
+function renderSmart(){
+  const insights = getSmartInsights();
+  let html = '';
+  insights.forEach(i => { html += `<div class="insight-card"><div class="insight-icon">${i.icon}</div><div class="insight-title">${i.title}</div><div class="insight-desc">${i.desc}</div></div>`; });
+  $('#smartContent').innerHTML = html;
+}
+function setupAuthListener(){
+  firebase.auth().onAuthStateChanged(async user => {
+    if (user) {
+      firebaseReady = true;
+      document.body.classList.remove('auth-mode');
+      await loadCloudData();
+      render();
+      scheduleTriggerNotifications();
+    } else {
+      firebaseReady = false;
+      document.body.classList.add('auth-mode');
+    }
+  });
+}
+function showAuthScreen(){ document.body.classList.add('auth-mode'); }
+
+$$('.nav-btn').forEach(b=>{ b.onclick = ()=>{ currentTab = b.dataset.tab; render(); window.scrollTo({top:0,behavior:'smooth'}); }; });
+$('#fab').onclick = ()=>{ if (currentTab === 'reminders') openReminderModal(); else if (currentTab === 'challenges') openChallengeModal(); };
+$('#reminderRepeat').onchange = e=>{ $('#reminderDaysField').style.display = e.target.value==='weekly' ? 'block' : 'none'; };
+$$('[data-close]').forEach(b=>{ b.onclick = ()=> $('#'+b.dataset.close).classList.remove('open'); });
+$$('.modal').forEach(m=>{ m.onclick = e=>{ if (e.target===m) m.classList.remove('open'); }; });
+$('#saveReminder').onclick = saveReminder;
+$('#saveChallenge').onclick = saveChallenge;
+$('#fetchPrayerBtn').onclick = fetchAndSetPrayerTime;
+$('#themeToggle').onclick = toggleTheme;
+$('#saveFbConfig').onclick = saveFirebaseConfig;
+$('#addFriendBtn').onclick = addFriend;
+$('#googleLogin').onclick = loginGoogle;
+$('#emailLogin').onclick = loginEmail;
+$('#emailSignup').onclick = signupEmail;
+$('#skipAuth').onclick = skipAuth;
+$('#saveGroup').onclick = saveGroup;
+document.addEventListener('click', e => {
+  if (e.target.matches('[data-lb-tab]')) { lbTab = e.target.dataset.lbTab; $$('[data-lb-tab]').forEach(b => b.classList.toggle('active', b.dataset.lbTab === lbTab)); renderLeaderboard(); }
+});
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; if (currentTab === 'home' || currentTab === 'settings') render(); });
+
+async function init(){
+  applyTheme(); registerSW(); trackAppOpen();
+  const hasConfig = !!localStorage.getItem(FB_STORAGE_KEY);
+  if (hasConfig) {
+    const ok = await initFirebaseIfConfigured();
+    if (ok) {
+      if (!firebase.apps.length) firebase.initializeApp(JSON.parse(localStorage.getItem(FB_STORAGE_KEY)));
+      setupAuthListener();
+      setTimeout(() => { if (!firebase.auth().currentUser) document.body.classList.add('auth-mode'); }, 500);
+    }
+  }
+  render();
+  document.addEventListener('click', function once(){ requestNotifPermission(); document.removeEventListener('click', once); }, {once:true});
+  fetchPrayerTimes().then(()=>{ if (currentTab === 'home') render(); }).catch(()=>{});
+  setInterval(checkReminders, 30000);
+  setTimeout(checkReminders, 2000);
+  setTimeout(() => { requestNotifPermission().then(scheduleTriggerNotifications); }, 5000);
+}
+init();
+</script>
+</body>
+</html>
